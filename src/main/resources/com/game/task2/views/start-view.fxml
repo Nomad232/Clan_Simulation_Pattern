@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+    <right>
+        <VBox alignment="TOP_CENTER" prefWidth="150.0" spacing="10.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
+            <children>
+                <Label text="Панель управління" />
+                <Button fx:id="newSimulationButton" onAction="#newSimulation" mnemonicParsing="false" text="Нова симуляція" />
+                <Button fx:id="startButton" mnemonicParsing="false" text="Продовжити" />
+                <Button fx:id="stopButton" mnemonicParsing="false" text="Стоп" />
+            </children>
+            <padding>
+                <Insets top="10.0" />
+            </padding>
+        </VBox>
+    </right>
+    <center>
+<!--        minHeight="400" maxHeight="400" minWidth="500" maxWidth="500"-->
+        <Pane minHeight="500" maxHeight="500" minWidth="600" maxWidth="600" fx:id="canvasPane" BorderPane.alignment="CENTER">
+            <children>
+                <Canvas fx:id="mainCanvas"/>
+            </children>
+        </Pane>
+    </center>
+</BorderPane>
