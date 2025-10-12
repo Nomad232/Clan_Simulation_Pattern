@@ -20,14 +20,14 @@
                 <Button fx:id="startButton" mnemonicParsing="false" text="Продовжити" />
                 <Button fx:id="stopButton" mnemonicParsing="false" text="Стоп" />
                 <Label text="BLUE:" />
-                <Slider fx:id="friendCountSlider" min="10" max="1000"
+                <Slider fx:id="friendCountSlider" min="10" max="5000"
                         majorTickUnit="200"
                         minorTickCount="3"
                         showTickLabels="true"
                         showTickMarks="true"
                         snapToTicks="true" />
                 <Label text="RED:" />
-                <Slider fx:id="enemyCountSlider" min="10" max="1000"
+                <Slider fx:id="enemyCountSlider" min="10" max="5000"
                         majorTickUnit="200"
                         minorTickCount="3"
                         showTickLabels="true"

@@ -29,7 +29,7 @@ import static com.game.task2.models.factory.Renderable.UNIT_SIZE;
 public class StartController {
     private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
     private static final Color ENEMY_COLOR = Color.RED;   // Колір ворожої фракції
-    private static final double SPAWN_RADIUS = 30.0;
+    private static final double SPAWN_RADIUS = 70.0;
     private static int MIN_GROUPS = 3;
     private static int MAX_GROUPS = 10;
     private double attackThrottleTimer = 0.0; // Таймер для обмеження частоти атаки
@@ -313,6 +313,7 @@ public class StartController {
                 // Юніт знаходиться в ренжі, стоїть на місці
             }
         }
+        units.removeIf(x -> !x.isAlive());
     }
 
     // --- ВІДТВОРЕННЯ (RENDER) ---
