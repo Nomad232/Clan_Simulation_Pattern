@@ -1,4 +1,4 @@
-package com.game.task2.models.factory;
+package com.game.task2.models;
 
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;

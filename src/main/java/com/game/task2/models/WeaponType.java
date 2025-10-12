@@ -1,4 +1,4 @@
-package com.game.task2.models.factory;
+package com.game.task2.models;
 
 public enum WeaponType {
     NONE(5, Renderable.UNIT_SIZE * 1),

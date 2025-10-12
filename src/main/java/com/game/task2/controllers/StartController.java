@@ -3,10 +3,10 @@ package com.game.task2.controllers;
 import com.game.task2.models.factory.dwarf.DwarfFactory;
 import com.game.task2.models.factory.elf.Elf;
 import com.game.task2.models.factory.elf.ElfFactory;
-import com.game.task2.models.factory.singleton.ClanLeader;
+import com.game.task2.models.singleton.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.factory.unit.UnitFactory;
-import com.game.task2.models.factory.Vector2D;
+import com.game.task2.models.Vector2D;
 import com.game.task2.models.factory.warrior.WarriorFactory;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
@@ -21,9 +21,8 @@ import javafx.scene.paint.Color;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Stream;
 
-import static com.game.task2.models.factory.Renderable.UNIT_SIZE;
+import static com.game.task2.models.Renderable.UNIT_SIZE;
 
 // Головний контролер для керування симуляцією (FX-контролер)
 public class StartController {
@@ -35,7 +34,6 @@ public class StartController {
     private double attackThrottleTimer = 0.0; // Таймер для обмеження частоти атаки
     private List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
-    // Переменная для расчета времени между кадрами (delta time)
     private long lastTime = 0; // Для розрахунку deltaTime
 
     @FXML
@@ -194,7 +192,7 @@ public class StartController {
         if (!currentUnit.isAlive()) return null;
         Color friendColor = currentUnit.getColor();
         Unit nearestEnemy = null;
-        double minDistanceSq = Double.MAX_VALUE; // Квадрат відстані для оптимізації
+        double minDistanceSq = Double.MAX_VALUE; // Квадрат відстані
 
         for (Unit otherUnit : allUnits) {
             if(!otherUnit.isAlive()) continue;
@@ -340,19 +338,19 @@ public class StartController {
 
         // 3. Виведення статистики
         gc.setFill(FRIEND_COLOR);
-        gc.fillText(String.format("Кількість Friend: %s",
+        gc.fillText(String.format("Кількість BLUE: %s",
                 units.stream()
                         .filter(unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR))
                         .count()
-        ), 10, 10);
+        ), 10, 15);
 
-        gc.fillText(String.format("Лідер: %s", ClanLeader.getInstance().getLeader().getName()), 10, 40);
+        gc.fillText(String.format("Лідер: %s", ClanLeader.getInstance().getLeader().getName()), 10, 45);
 
         gc.setFill(ENEMY_COLOR);
-        gc.fillText(String.format("Кількість Enemy: %s",
+        gc.fillText(String.format("Кількість RED: %s",
                 units.stream()
                         .filter(unit -> unit.isAlive() && unit.getColor().equals(Color.RED))
                         .count()
-        ), 10, 25);
+        ), 10, 30);
     }
 }

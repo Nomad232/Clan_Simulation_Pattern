@@ -1,9 +1,9 @@
 package com.game.task2.models.factory.unit;
 
-import com.game.task2.models.factory.Movable;
-import com.game.task2.models.factory.Renderable;
-import com.game.task2.models.factory.Vector2D;
-import com.game.task2.models.factory.WeaponType;
+import com.game.task2.models.Movable;
+import com.game.task2.models.Renderable;
+import com.game.task2.models.Vector2D;
+import com.game.task2.models.WeaponType;
 
 public interface Unit extends Cloneable, Renderable, Movable {
     boolean attack(Unit target);

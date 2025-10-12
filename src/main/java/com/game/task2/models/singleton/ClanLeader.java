@@ -1,4 +1,4 @@
-package com.game.task2.models.factory.singleton;
+package com.game.task2.models.singleton;
 
 import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.factory.unit.Unit;

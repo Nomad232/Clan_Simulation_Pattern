@@ -1,7 +1,7 @@
 package com.game.task2.models.factory.unit;
 
-import com.game.task2.models.factory.Vector2D;
-import com.game.task2.models.factory.WeaponType;
+import com.game.task2.models.Vector2D;
+import com.game.task2.models.WeaponType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
