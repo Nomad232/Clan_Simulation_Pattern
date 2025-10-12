@@ -3,8 +3,8 @@ package com.game.task2.models.factory;
 public enum WeaponType {
     NONE(5, Renderable.UNIT_SIZE * 1),
     SWORD(25, Renderable.UNIT_SIZE * 1),
-    BOW(15, Renderable.UNIT_SIZE * 3),
-    STAFF(20, Renderable.UNIT_SIZE * 4);
+    BOW(7, Renderable.UNIT_SIZE * 3),
+    FIREBALL(15, Renderable.UNIT_SIZE * 4);
 
     private final int damage;
     private final double range;

@@ -1,6 +1,5 @@
 package com.game.task2.models.factory.dwarf;
 
-import com.game.task2.models.factory.elf.Elf;
 import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.factory.Vector2D;
 import com.game.task2.models.factory.WeaponType;
@@ -14,7 +13,7 @@ public class Dwarf extends ClanUnit {
             .getResource("/com/game/task2/views/dwarf.png").toExternalForm());
 
     public Dwarf(Vector2D pos) {
-        super("Dwarf", 50, WeaponType.STAFF, pos);
+        super("Dwarf", 50, WeaponType.FIREBALL, pos);
     }
 
     public Dwarf(Vector2D pos, WeaponType type) {
