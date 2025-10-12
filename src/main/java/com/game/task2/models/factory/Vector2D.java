@@ -29,37 +29,42 @@ public class Vector2D implements Cloneable {
         this.y = y;
     }
 
-    // Сложение векторов
     public Vector2D add(Vector2D other) {
         return new Vector2D(this.x + other.x, this.y + other.y);
     }
 
-    // Вычитание
     public Vector2D subtract(Vector2D other) {
         return new Vector2D(this.x - other.x, this.y - other.y);
     }
 
-    // Умножение на скаляр
     public Vector2D multiply(double scalar) {
         return new Vector2D(this.x * scalar, this.y * scalar);
     }
 
-    // Длина вектора
     public double length() {
         return Math.sqrt(x * x + y * y);
     }
 
-    // Нормализация (единичный вектор)
+    public double lengthSq() {
+        return x * x + y * y;
+    }
+
     public Vector2D normalize() {
         double len = length();
         return len == 0 ? new Vector2D(0, 0) : new Vector2D(x / len, y / len);
     }
 
-    // Расстояние между двумя точками
     public double distanceTo(Vector2D other) {
         double dx = this.x - other.x;
         double dy = this.y - other.y;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+
+    public double distanceSq(Vector2D other) {
+        double dx = this.x - other.x;
+        double dy = this.y - other.y;
+        return dx * dx + dy * dy;
     }
 
     @Override
@@ -69,6 +74,19 @@ public class Vector2D implements Cloneable {
         } catch (CloneNotSupportedException e) {
             throw new InternalError(e);
         }
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Vector2D otherVector = (Vector2D) obj;
+        return Double.compare(otherVector.x, x) == 0 && Double.compare(otherVector.y, y) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(x, y);
     }
 
     @Override

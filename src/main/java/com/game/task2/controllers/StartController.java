@@ -3,6 +3,7 @@ package com.game.task2.controllers;
 import com.game.task2.models.factory.dwarf.DwarfFactory;
 import com.game.task2.models.factory.elf.Elf;
 import com.game.task2.models.factory.elf.ElfFactory;
+import com.game.task2.models.factory.singleton.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.factory.unit.UnitFactory;
 import com.game.task2.models.factory.Vector2D;
@@ -12,46 +13,58 @@ import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import static com.game.task2.models.factory.Renderable.UNIT_SIZE;
 
+// Головний контролер для керування симуляцією (FX-контролер)
 public class StartController {
+    private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
+    private static final Color ENEMY_COLOR = Color.RED;   // Колір ворожої фракції
+    private static final double SPAWN_RADIUS = 30.0;
+    private static int MIN_GROUPS = 3;
+    private static int MAX_GROUPS = 10;
+    private double attackThrottleTimer = 0.0; // Таймер для обмеження частоти атаки
+    private List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
+    private AnimationTimer gameLoop; // Головний ігровий цикл
+    // Переменная для расчета времени между кадрами (delta time)
+    private long lastTime = 0; // Для розрахунку deltaTime
+
+    @FXML
+    private Spinner<Integer> minGroup;
+    @FXML
+    private Spinner<Integer> maxGroup;
+    @FXML
+    private Slider friendCountSlider;
+    @FXML
+    private Slider enemyCountSlider;
     @FXML
     private Button newSimulationButton;
-
     @FXML
     private Button startButton;
-
     @FXML
     private Button stopButton;
-
     @FXML
     private Pane canvasPane; // Контейнер для холста
-
     @FXML
     private Canvas mainCanvas; // Сам холст
 
-    private List<Unit> units = new ArrayList<>();
-
-    private AnimationTimer gameLoop;
-
-    private double attackThrottleTimer = 0.0;
-    final double ATTACK_FREQUENCY = 2; // Атака раз на 1 секунди
-
-    // Переменная для расчета времени между кадрами (delta time)
-    private long lastTime = 0;
-
+    // Викликається при завантаженні FXML
     public void initialize() {
 
+        // Прив'язка розміру Canvas до розміру Pane
         mainCanvas.widthProperty().bind(canvasPane.widthProperty());
         mainCanvas.heightProperty().bind(canvasPane.heightProperty());
 
+        // Обробники кнопок Start/Stop
         startButton.setOnAction(e -> {
             lastTime = 0;
             gameLoop.start();
@@ -60,145 +73,285 @@ public class StartController {
 
     }
 
+    // Скидає та створює нову симуляцію
     @FXML
     private void newSimulation() {
-        units.clear();
-        createWarriorsInChunks(10, 10);
-        setupGameLoop();
+        MIN_GROUPS = minGroup.getValue();
+        MAX_GROUPS = maxGroup.getValue();
+        ClanLeader.reset(); // Скидання Singleton лідера
+        units.clear();      // Очистка списку
+        createFriendlyUnits((int) friendCountSlider.getValue()); // Створення дружніх юнітів
+        createEnemyUnits((int) enemyCountSlider.getValue());    // Створення ворожих юнітів
+        setupGameLoop();          // Налаштування та запуск циклу
     }
 
-    private void createWarriorsInChunks(int rows, int cols) {
-        // Получаем текущие размеры холста (для динамического расчета чанков)
+    // Створює дружні юніти (сині) групами (використовує Абстрактну Фабрику)
+    private void createFriendlyUnits(int countUnits) {
+        final Color UNIT_COLOR = Color.BLUE;
+        Random rnd = new Random();
+
         double totalWidth = mainCanvas.getWidth();
         double totalHeight = mainCanvas.getHeight();
 
-        // 1. Рассчитываем размер чанка
-        double chunkWidth = totalWidth / cols; // 400 / 3 = 133.33
-        double chunkHeight = totalHeight / rows; // 400 / 3 = 133.33
+        // Список фабрик для різних типів юнітів
+        List<UnitFactory> factories = List.of(new WarriorFactory(), new ElfFactory(), new DwarfFactory());
+        int rndGroups = rnd.nextInt(MIN_GROUPS, MAX_GROUPS);
+        List<Vector2D> seeds = new ArrayList<>(rndGroups); // "Зерна" для спавну груп
 
-        UnitFactory warriorFactory = new WarriorFactory();
-        UnitFactory elfFactory = new ElfFactory();
-        UnitFactory dwarfFactory = new DwarfFactory();
-        int count = 0; // Счетчик юнитов
 
-        // 2. Двойной цикл для обхода сетки
-        for (int row = 0; row < rows; row++) { // row: 0, 1, 2
-            for (int col = 0; col < cols; col++) { // col: 0, 1, 2
+        // Знаходимо зерна для спавну
+        for (int i = 0; i < rndGroups; i++) {
+            Vector2D vector = new Vector2D(rnd.nextInt(50, (int) totalWidth), rnd.nextInt(50, (int) totalHeight));
+            seeds.add(vector);
+        }
 
-                // 3. Расчет центральной позиции чанка
+        // Розподіл юнітів по групах
+        for (int i = 0; i < rndGroups; i++) {
+            int unitsInGroup;
+            if (i == rndGroups - 1) {
+                unitsInGroup = countUnits; // оставшиеся единицы
+            } else {
+                unitsInGroup = rnd.nextInt(0, countUnits - (rndGroups - i - 1) + 1);
+                countUnits -= unitsInGroup;
+            }
 
-                // Левый край чанка + половина ширины чанка
-                double centerX = (col * chunkWidth) + (chunkWidth / 2.0);
+            Vector2D seed = seeds.get(i);
+            var factory = factories.get(rnd.nextInt(0, factories.size())); // Випадкова фабрика
 
-                // Верхний край чанка + половина высоты чанка
-                double centerY = (row * chunkHeight) + (chunkHeight / 2.0);
+            for (int k = 0; k < unitsInGroup; k++) {
+                // Випадкове зміщення навколо seed
+                double angle = rnd.nextDouble() * 2 * Math.PI;
+                double distance = rnd.nextDouble() * SPAWN_RADIUS;
 
-                // Для центрирования круга (юнита) нужно вычесть половину его размера (UNIT_SIZE / 2)
-                double unitOffsetX = UNIT_SIZE / 2.0;
-                double unitOffsetY = UNIT_SIZE / 2.0;
+                double offsetX = Math.cos(angle) * distance;
+                double offsetY = Math.sin(angle) * distance;
 
-                // Финальная позиция (верхний левый угол, где начнется отрисовка овала)
-                Vector2D position = new Vector2D(centerX - unitOffsetX, centerY - unitOffsetY);
+                Vector2D spawnPos = new Vector2D(seed.getX() + offsetX, seed.getY() + offsetY);
 
-                // 4. Создание и добавление юнита
-
-                List<Color> colors = List.of(Color.GREEN, Color.RED, Color.AQUA);
-
-                List<Unit> unitList = List.of(warriorFactory.createUnit(position), elfFactory.createUnit(position),
-                        dwarfFactory.createUnit(position));
-
-                Unit rndUnit = unitList.get(new Random().nextInt(unitList.size()));
-                rndUnit.setColor(colors.get(new Random().nextInt(unitList.size())));
-
-                units.add(rndUnit.clone());
-
-                count++;
-                System.out.printf("Створений воін #%d в чанку (%d, %d) на позиції (%.2f, %.2f)\n",
-                        count, col, row, position.getX(), position.getY());
+                Unit newUnit = factory.createUnit(spawnPos); // Створення юніта
+                newUnit.setColor(FRIEND_COLOR);
+                units.add(newUnit);
             }
         }
+        // Встановлення лідера клану (Singleton)
+        ClanLeader.getInstance(units.get(rnd.nextInt(0, units.size())));
     }
 
+    // Створює ворожі юніти (червоні) групами (аналогічно дружнім)
+    private void createEnemyUnits(int countUnits) {
+        Random rnd = new Random();
+
+        double totalWidth = mainCanvas.getWidth();
+        double totalHeight = mainCanvas.getHeight();
+
+        List<UnitFactory> factories = List.of(new WarriorFactory(), new ElfFactory(), new DwarfFactory());
+        int rndGroups = rnd.nextInt(MIN_GROUPS, MAX_GROUPS);
+        List<Vector2D> seeds = new ArrayList<>(rndGroups);
+
+
+        // Знаходимо зерна для спавну
+        for (int i = 0; i < rndGroups; i++) {
+            Vector2D vector = new Vector2D(rnd.nextInt(50, (int) totalWidth), rnd.nextInt(50, (int) totalHeight));
+            seeds.add(vector);
+        }
+
+        // Розподіл юнітів по групах
+        for (int i = 0; i < rndGroups; i++) {
+            int unitsInGroup;
+            if (i == rndGroups - 1) {
+                unitsInGroup = countUnits; // оставшиеся единицы
+            } else {
+                unitsInGroup = rnd.nextInt(0, countUnits - (rndGroups - i - 1) + 1);
+                countUnits -= unitsInGroup;
+            }
+
+
+            Vector2D seed = seeds.get(i);
+            var factory = factories.get(rnd.nextInt(0, factories.size()));
+
+            for (int k = 0; k < unitsInGroup; k++) {
+
+                // случайное смещение вокруг seed
+                double angle = rnd.nextDouble() * 2 * Math.PI;
+                double distance = rnd.nextDouble() * SPAWN_RADIUS;
+
+                double offsetX = Math.cos(angle) * distance;
+                double offsetY = Math.sin(angle) * distance;
+
+                Vector2D spawnPos = new Vector2D(seed.getX() + offsetX, seed.getY() + offsetY);
+
+                Unit newUnit = factory.createUnit(spawnPos);
+                newUnit.setColor(ENEMY_COLOR);
+                units.add(newUnit);
+            }
+        }
+        // Встановлення лідера клану
+        ClanLeader.getInstance(units.get(rnd.nextInt(0, units.size())));
+    }
+
+    // Шукає найближчого ворожого юніта
+    private Unit findNearestEnemy(Unit currentUnit, List<Unit> allUnits) {
+        if (!currentUnit.isAlive()) return null;
+        Color friendColor = currentUnit.getColor();
+        Unit nearestEnemy = null;
+        double minDistanceSq = Double.MAX_VALUE; // Квадрат відстані для оптимізації
+
+        for (Unit otherUnit : allUnits) {
+            if(!otherUnit.isAlive()) continue;
+            // Перевіряємо, що це не той самий юніт і що це ворог (інший колір)
+            if (currentUnit != otherUnit && otherUnit.getColor() != friendColor) {
+                double distSq = currentUnit.getPosition().distanceSq(otherUnit.getPosition());
+
+                if (distSq < minDistanceSq) {
+                    minDistanceSq = distSq;
+                    nearestEnemy = otherUnit;
+                }
+            }
+        }
+        return nearestEnemy;
+    }
+
+    // Обмежує позицію юніта в межах холста
+    private Vector2D clampPosition(Vector2D pos) {
+        double minX = 0;
+        double minY = 0;
+        double maxX = mainCanvas.getWidth() - UNIT_SIZE;
+        double maxY = mainCanvas.getHeight() - UNIT_SIZE;
+
+        double newX = Math.max(minX, Math.min(pos.getX(), maxX));
+        double newY = Math.max(minY, Math.min(pos.getY(), maxY));
+
+        return new Vector2D(newX, newY);
+    }
+
+    // Налаштовує ігровий цикл (AnimationTimer)
     private void setupGameLoop() {
         if (gameLoop != null) return;
 
         gameLoop = new AnimationTimer() {
-            // 'now' — это текущее время в наносекундах
+            // 'now' — це поточний час в наносекундах
             @Override
             public void handle(long now) {
-                // Рассчитываем время кадра (delta time) для плавного движения
+                // Розрахунок часу кадру (delta time)
                 if (lastTime == 0) {
                     lastTime = now;
                     return;
                 }
 
-                // Время, прошедшее с предыдущего кадра в секундах
+                // Час, що минув з попереднього кадру в секундах
                 double deltaTime = (now - lastTime) / 1_000_000_000.0;
 
-                // 1. ОБНОВЛЕНИЕ ЛОГИКИ
+                // 1. ОНОВЛЕННЯ ЛОГІКИ
                 updateGame(deltaTime);
 
-                // 2. ОТРИСОВКА
+                // 2. ВІДТВОРЕННЯ
                 draw();
 
                 lastTime = now;
             }
         };
-
+        // Початковий запуск (якщо не був запущений кнопкою)
         gameLoop.start();
     }
 
-    // --- ЛОГИКА ОБНОВЛЕНИЯ (UPDATE) ---
+    // --- ЛОГІКА ОНОВЛЕННЯ (UPDATE) ---
     private void updateGame(double deltaTime) {
+        // Швидкості для різних типів юнітів
+        final double ELF_SPEED = 40.0;
+        final double OTHER_SPEED = 30.0;
+
+        attackThrottleTimer += deltaTime;
+        double ATTACK_FREQUENCY = 1; // Атака раз на 1 секунду
+        boolean shouldAttack = attackThrottleTimer >= ATTACK_FREQUENCY;
+
+        if (shouldAttack) {
+            attackThrottleTimer = 0.0;
+        }
+
+        // Обробка логіки для кожного юніта
         for (Unit unitA : units) {
-            boolean canMove = true;
-            attackThrottleTimer += deltaTime;
-            boolean shouldAttack = attackThrottleTimer >= ATTACK_FREQUENCY;
+            // 1. Пошук найближчого ворога
+            Unit targetEnemy = findNearestEnemy(unitA, units);
 
-            if (shouldAttack) {
-                attackThrottleTimer = 0.0;
+            if (targetEnemy == null) {
+                continue; // Ворогів немає
             }
 
-            for (Unit unitB : units) {
-                if (shouldAttack && unitA.attack(unitB)) {
-                    break;
+            // 2. Розрахунок відстаней
+            Vector2D currentPos = unitA.getPosition();
+            Vector2D targetPos = targetEnemy.getPosition();
+            double distanceSq = currentPos.distanceSq(targetPos); // Квадрат відстані
+
+            // Квадрат радіуса атаки
+            double attackRange = unitA.getWeapon().getRange();
+            double attackRangeSq = attackRange * attackRange;
+
+            // 3. Логіка атаки (якщо в ренжі та настав час)
+            if (shouldAttack && distanceSq <= attackRangeSq) {
+                if (unitA.attack(targetEnemy)) {
+                    // Обробка смерті (якщо необхідно)
                 }
             }
 
-            if (canMove) {
-                if (unitA.getPosition().getX() < mainCanvas.getWidth() - UNIT_SIZE
-                        && unitA.getPosition().getY() < mainCanvas.getHeight() - UNIT_SIZE) {
-                    if (unitA instanceof Elf) {
-                        unitA.move(new Vector2D(40 * deltaTime, 0));
-                    } else {
-                        unitA.move(new Vector2D(30 * deltaTime, 0));
-                    }
-                }
+            // 4. Логіка руху (рух до ворога, ТІЛЬКИ якщо він поза ренжем)
+            if (distanceSq > attackRangeSq) {
+
+                double speed = unitA instanceof Elf ? ELF_SPEED : OTHER_SPEED; // Швидкість (елфи швидші)
+
+                // Розрахунок вектора напрямку та руху
+                Vector2D direction = targetPos.subtract(currentPos).normalize();
+                Vector2D movementVector = direction.multiply(speed * deltaTime);
+
+                // 5. Застосування руху
+                Vector2D nextPosition = unitA.getPosition().add(movementVector);
+                Vector2D clampedPosition = clampPosition(nextPosition); // Перевірка границь
+
+                // Встановлення нової позиції
+                unitA.setPosition(clampedPosition);
+
+            } else {
+                // Юніт знаходиться в ренжі, стоїть на місці
             }
         }
     }
 
-
-    // --- ОТРИСОВКА (RENDER) ---
+    // --- ВІДТВОРЕННЯ (RENDER) ---
     private void draw() {
         GraphicsContext gc = mainCanvas.getGraphicsContext2D();
 
-        // 1. Очистка
+        // 1. Очищення фону
         gc.clearRect(0, 0, mainCanvas.getWidth(), mainCanvas.getHeight());
-
-        // Заливаем весь холст новым цветом. Это ваш фон.
-        gc.setFill(Color.LIGHTGREEN);
+        gc.setFill(Color.TRANSPARENT);
         gc.fillRect(0, 0, mainCanvas.getWidth(), mainCanvas.getHeight());
 
-        // 2. Рисование юнитов
+        // 2. Рисування юнітів
         for (Unit unit : units) {
             if (unit.isAlive()) {
-                unit.render(gc);
+                // Лідер клану виділяється жовтим
+                if (unit == ClanLeader.getInstance().getLeader()) {
+                    gc.setFill(Color.YELLOW);
+                    gc.fillRect(unit.getPosition().getX(), unit.getPosition().getY(), UNIT_SIZE, UNIT_SIZE);
+                } else {
+                    unit.render(gc); // Звичайне відтворення
+                }
             }
         }
 
-        // Рисуем что-нибудь для примера
-        gc.setFill(Color.BLUE);
-        gc.fillText(String.format("Кількість unit: %s", units.stream().filter(Unit::isAlive).count()), 20, 30);
+        // 3. Виведення статистики
+        gc.setFill(FRIEND_COLOR);
+        gc.fillText(String.format("Кількість Friend: %s",
+                units.stream()
+                        .filter(unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR))
+                        .count()
+        ), 10, 10);
+
+        gc.fillText(String.format("Лідер: %s", ClanLeader.getInstance().getLeader().getName()), 10, 40);
+
+        gc.setFill(ENEMY_COLOR);
+        gc.fillText(String.format("Кількість Enemy: %s",
+                units.stream()
+                        .filter(unit -> unit.isAlive() && unit.getColor().equals(Color.RED))
+                        .count()
+        ), 10, 25);
     }
 }

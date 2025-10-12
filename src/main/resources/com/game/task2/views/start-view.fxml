@@ -8,14 +8,35 @@
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.VBox?>
 
+<?import org.controlsfx.control.SegmentedBar?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
     <right>
-        <VBox alignment="TOP_CENTER" prefWidth="150.0" spacing="10.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
+        <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="5.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
             <children>
                 <Label text="Панель управління" />
                 <Button fx:id="newSimulationButton" onAction="#newSimulation" mnemonicParsing="false" text="Нова симуляція" />
                 <Button fx:id="startButton" mnemonicParsing="false" text="Продовжити" />
                 <Button fx:id="stopButton" mnemonicParsing="false" text="Стоп" />
+                <Label text="BLUE:" />
+                <Slider fx:id="friendCountSlider" min="10" max="1000"
+                        majorTickUnit="200"
+                        minorTickCount="3"
+                        showTickLabels="true"
+                        showTickMarks="true"
+                        snapToTicks="true" />
+                <Label text="RED:" />
+                <Slider fx:id="enemyCountSlider" min="10" max="1000"
+                        majorTickUnit="200"
+                        minorTickCount="3"
+                        showTickLabels="true"
+                        showTickMarks="true"
+                        snapToTicks="true" />
+                <Label text="Мінімальна кількість груп:" />
+                <Spinner fx:id="minGroup" min="1"  max="100" editable="true" initialValue="5"/>
+                <Label text="Максимальна кількість груп:" />
+                <Spinner fx:id="maxGroup" min="2" max="100" editable="true" initialValue="10"/>
             </children>
             <padding>
                 <Insets top="10.0" />
@@ -24,7 +45,7 @@
     </right>
     <center>
 <!--        minHeight="400" maxHeight="400" minWidth="500" maxWidth="500"-->
-        <Pane minHeight="500" maxHeight="500" minWidth="600" maxWidth="600" fx:id="canvasPane" BorderPane.alignment="CENTER">
+        <Pane fx:id="canvasPane" BorderPane.alignment="CENTER">
             <children>
                 <Canvas fx:id="mainCanvas"/>
             </children>

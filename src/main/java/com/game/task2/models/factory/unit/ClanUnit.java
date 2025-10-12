@@ -14,6 +14,15 @@ public class ClanUnit implements Unit {
     protected WeaponType weapon;        // Тип зброї
     protected Color color;             // Колір для відображення
 
+    public ClanUnit() {
+        this.health = 100;
+        this.name = "Empty";
+        this.alive = true;
+        this.position = new Vector2D();
+        this.weapon = WeaponType.NONE;
+        this.color = Color.BLUE;
+    }
+
     // Конструктор з повним набором параметрів
     public ClanUnit(String name, int health, WeaponType weapon, Vector2D position, Color color) {
         this.name = name;
@@ -77,6 +86,11 @@ public class ClanUnit implements Unit {
     }
 
     @Override
+    public void setPosition(Vector2D position) {
+        this.position = position;
+    }
+
+    @Override
     public void spawn(Vector2D vector) {
         alive = true;
         position = vector;
@@ -86,7 +100,7 @@ public class ClanUnit implements Unit {
     @Override
     public void destroy() {
         alive = false;
-        position = new Vector2D(-1,-1); // Відправляє юніт "поза карту"
+        position = new Vector2D(-1, -1); // Відправляє юніт "поза карту"
 
         System.out.println(name + " був знищений!");
     }
@@ -111,6 +125,10 @@ public class ClanUnit implements Unit {
     @Override
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     @Override
@@ -159,7 +177,7 @@ public class ClanUnit implements Unit {
     public void render(GraphicsContext gc) {
         gc.setFill(color);
         // Малює овал на позиції юніта
-        gc.fillOval(position.getX(), position.getY(), UNIT_SIZE,UNIT_SIZE);
+        gc.fillOval(position.getX(), position.getY(), UNIT_SIZE, UNIT_SIZE);
     }
 
     // Методи для роботи з кольором
