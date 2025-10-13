@@ -11,7 +11,7 @@
 <?import org.controlsfx.control.SegmentedBar?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Spinner?>
-<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" stylesheets="@styles.css" xmlns:fx="http://javafx.com/fxml/1">
     <right>
         <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="5.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
             <children>
@@ -20,14 +20,14 @@
                 <Button fx:id="startButton" mnemonicParsing="false" text="Продовжити" />
                 <Button fx:id="stopButton" mnemonicParsing="false" text="Стоп" />
                 <Label text="BLUE:" />
-                <Slider fx:id="friendCountSlider" min="10" max="5000"
+                <Slider fx:id="friendCountSlider" min="10" max="1000"
                         majorTickUnit="200"
                         minorTickCount="3"
                         showTickLabels="true"
                         showTickMarks="true"
                         snapToTicks="true" />
                 <Label text="RED:" />
-                <Slider fx:id="enemyCountSlider" min="10" max="5000"
+                <Slider fx:id="enemyCountSlider" min="10" max="1000"
                         majorTickUnit="200"
                         minorTickCount="3"
                         showTickLabels="true"

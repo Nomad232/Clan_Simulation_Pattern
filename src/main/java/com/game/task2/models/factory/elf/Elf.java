@@ -25,7 +25,7 @@ public class Elf extends ClanUnit {
 //        double x = position.getX();
 //        double y = position.getY();
 //
-//// Небольшая коррекция вправо (можно подобрать визуально)
+//// Небольшая коррекция вправо
 //        double offsetX = 4;
 //        double offsetY = UNIT_SIZE / 2; // опускаем треугольник чуть вниз
 //
