@@ -13,7 +13,7 @@
 <?import javafx.scene.control.Spinner?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" stylesheets="@styles.css" xmlns:fx="http://javafx.com/fxml/1">
     <right>
-        <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="5.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
+        <VBox alignment="TOP_CENTER" prefWidth="200.0" spacing="7.0" style="-fx-background-color: #f0f0f0;" BorderPane.alignment="CENTER">
             <children>
                 <Label text="Панель управління" />
                 <Button fx:id="newSimulationButton" onAction="#newSimulation" mnemonicParsing="false" text="Нова симуляція" />
