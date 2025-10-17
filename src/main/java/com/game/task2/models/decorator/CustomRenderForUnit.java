@@ -1,11 +1,10 @@
 package com.game.task2.models.decorator;
 
-import com.game.task2.models.Renderable;
+import com.game.task2.models.other.Renderable;
 import com.game.task2.models.factory.dwarf.Dwarf;
 import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.factory.unit.Unit;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
