@@ -1,5 +1,6 @@
 package com.game.task2.controllers;
 
+import com.game.task2.models.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
 import com.game.task2.models.factory.dwarf.DwarfFactory;
 import com.game.task2.models.factory.elf.Elf;
@@ -329,7 +330,7 @@ public class StartController {
             if (unit.isAlive()) {
                 // Лідер клану виділяється жовтим
                 if (unit == ClanLeader.getInstance().getLeader()) {
-                    CustomRenderForUnit customRender = new CustomRenderForUnit(unit);
+                    Renderable customRender = new CustomRenderForUnit(unit);
                     customRender.render(gc);
                 } else {
                     unit.render(gc); // Звичайне відтворення

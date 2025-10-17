@@ -10,7 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 
 public class CustomRenderForUnit implements Renderable {
-    private static Image image = new Image(Dwarf.class
+    private static final Image image = new Image(Dwarf.class
             .getResource("/com/game/task2/views/crown.png").toExternalForm());
     private Unit leader;
 

@@ -6,7 +6,6 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
 public class ClanUnit implements Unit {
-    // Захищені поля (доступні в підкласах)
     protected String name;             // Ім'я юніта
     protected int health;              // Поточне здоров'я
     protected boolean alive;           // Чи живий юніт
