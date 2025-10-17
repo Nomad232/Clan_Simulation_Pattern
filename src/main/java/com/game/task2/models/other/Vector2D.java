@@ -1,4 +1,4 @@
-package com.game.task2.models;
+package com.game.task2.models.other;
 
 public class Vector2D implements Cloneable {
     private double x;

@@ -1,4 +1,4 @@
-package com.game.task2.models;
+package com.game.task2.models.other;
 
 public interface Movable {
     Vector2D getPosition();

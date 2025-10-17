@@ -1,8 +1,8 @@
 package com.game.task2.models.factory.warrior;
 
 import com.game.task2.models.factory.unit.ClanUnit;
-import com.game.task2.models.Vector2D;
-import com.game.task2.models.WeaponType;
+import com.game.task2.models.other.Vector2D;
+import com.game.task2.models.other.WeaponType;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.image.Image;

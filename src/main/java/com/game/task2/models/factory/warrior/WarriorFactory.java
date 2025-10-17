@@ -2,8 +2,8 @@ package com.game.task2.models.factory.warrior;
 
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.factory.unit.UnitFactory;
-import com.game.task2.models.Vector2D;
-import com.game.task2.models.WeaponType;
+import com.game.task2.models.other.Vector2D;
+import com.game.task2.models.other.WeaponType;
 
 public class WarriorFactory implements UnitFactory {
     @Override

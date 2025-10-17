@@ -1,15 +1,12 @@
 package com.game.task2.controllers;
 
-import com.game.task2.models.Renderable;
+import com.game.task2.models.other.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
-import com.game.task2.models.factory.dwarf.DwarfFactory;
 import com.game.task2.models.factory.elf.Elf;
-import com.game.task2.models.factory.elf.ElfFactory;
 import com.game.task2.models.singleton.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
-import com.game.task2.models.factory.unit.UnitFactory;
-import com.game.task2.models.Vector2D;
-import com.game.task2.models.factory.warrior.WarriorFactory;
+import com.game.task2.models.other.Vector2D;
+import com.game.task2.models.util.UnitGenerationMethods;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
 import javafx.scene.canvas.Canvas;
@@ -24,17 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static com.game.task2.models.Renderable.UNIT_SIZE;
+import static com.game.task2.models.other.Renderable.UNIT_SIZE;
 
 // Головний контролер для керування симуляцією (FX-контролер)
 public class StartController {
     private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
     private static final Color ENEMY_COLOR = Color.RED;   // Колір ворожої фракції
     private static final double SPAWN_RADIUS = 60.0;
-    private static int MIN_GROUPS = 3;
-    private static int MAX_GROUPS = 10;
     private double attackThrottleTimer = 0.0; // Таймер для обмеження частоти атаки
-    private List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
+    private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
 
@@ -76,117 +71,26 @@ public class StartController {
     // Скидає та створює нову симуляцію
     @FXML
     private void newSimulation() {
-        MIN_GROUPS = minGroup.getValue();
-        MAX_GROUPS = maxGroup.getValue();
+        int minGroups = minGroup.getValue();
+        int maxGroups = maxGroup.getValue();
+        int friendUnitsCount = (int) friendCountSlider.getValue();
+        int enemyUnitsCount = (int) friendCountSlider.getValue();
+
         ClanLeader.reset(); // Скидання Singleton лідера
-        units.clear();      // Очистка списку
-        createFriendlyUnits((int) friendCountSlider.getValue()); // Створення дружніх юнітів
-        createEnemyUnits((int) enemyCountSlider.getValue());    // Створення ворожих юнітів
-        setupGameLoop();          // Налаштування та запуск циклу
-    }
+        units.clear();      // Очищування списку
 
-    // Створює дружні юніти (сині) групами (використовує Абстрактну Фабрику)
-    private void createFriendlyUnits(int countUnits) {
-        final Color UNIT_COLOR = Color.BLUE;
-        Random rnd = new Random();
+        List<Unit> friendUnits = UnitGenerationMethods.createUnitsByRandomSeeds(
+                mainCanvas, friendUnitsCount, minGroups, maxGroups, SPAWN_RADIUS, FRIEND_COLOR);
+        List<Unit> enemyUnits = UnitGenerationMethods.createUnitsByRandomSeeds(
+                mainCanvas, enemyUnitsCount, minGroups, maxGroups, SPAWN_RADIUS, ENEMY_COLOR);
 
-        double totalWidth = mainCanvas.getWidth();
-        double totalHeight = mainCanvas.getHeight();
-
-        // Список фабрик для різних типів юнітів
-        List<UnitFactory> factories = List.of(new WarriorFactory(), new ElfFactory(), new DwarfFactory());
-        int rndGroups = rnd.nextInt(MIN_GROUPS, MAX_GROUPS);
-        List<Vector2D> seeds = new ArrayList<>(rndGroups); // "Зерна" для спавну груп
-
-
-        // Знаходимо зерна для спавну
-        for (int i = 0; i < rndGroups; i++) {
-            Vector2D vector = new Vector2D(rnd.nextInt(50, (int) totalWidth), rnd.nextInt(50, (int) totalHeight));
-            seeds.add(vector);
-        }
-
-        // Розподіл юнітів по групах
-        for (int i = 0; i < rndGroups; i++) {
-            int unitsInGroup;
-            if (i == rndGroups - 1) {
-                unitsInGroup = countUnits; // оставшиеся единицы
-            } else {
-                unitsInGroup = rnd.nextInt(0, countUnits - (rndGroups - i - 1) + 1);
-                countUnits -= unitsInGroup;
-            }
-
-            Vector2D seed = seeds.get(i);
-            var factory = factories.get(rnd.nextInt(0, factories.size())); // Випадкова фабрика
-
-            for (int k = 0; k < unitsInGroup; k++) {
-                // Випадкове зміщення навколо seed
-                double angle = rnd.nextDouble() * 2 * Math.PI;
-                double distance = rnd.nextDouble() * SPAWN_RADIUS;
-
-                double offsetX = Math.cos(angle) * distance;
-                double offsetY = Math.sin(angle) * distance;
-
-                Vector2D spawnPos = new Vector2D(seed.getX() + offsetX, seed.getY() + offsetY);
-
-                Unit newUnit = factory.createUnit(spawnPos); // Створення юніта
-                newUnit.setColor(FRIEND_COLOR);
-                units.add(newUnit);
-            }
-        }
         // Встановлення лідера клану (Singleton)
-        ClanLeader.getInstance(units.get(rnd.nextInt(0, units.size())));
-    }
+        ClanLeader.getInstance(friendUnits.get(new Random().nextInt(0, friendUnits.size())));
 
-    // Створює ворожі юніти (червоні) групами (аналогічно дружнім)
-    private void createEnemyUnits(int countUnits) {
-        Random rnd = new Random();
+        units.addAll(friendUnits);
+        units.addAll(enemyUnits);
 
-        double totalWidth = mainCanvas.getWidth();
-        double totalHeight = mainCanvas.getHeight();
-
-        List<UnitFactory> factories = List.of(new WarriorFactory(), new ElfFactory(), new DwarfFactory());
-        int rndGroups = rnd.nextInt(MIN_GROUPS, MAX_GROUPS);
-        List<Vector2D> seeds = new ArrayList<>(rndGroups);
-
-
-        // Знаходимо зерна для спавну
-        for (int i = 0; i < rndGroups; i++) {
-            Vector2D vector = new Vector2D(rnd.nextInt(50, (int) totalWidth), rnd.nextInt(50, (int) totalHeight));
-            seeds.add(vector);
-        }
-
-        // Розподіл юнітів по групах
-        for (int i = 0; i < rndGroups; i++) {
-            int unitsInGroup;
-            if (i == rndGroups - 1) {
-                unitsInGroup = countUnits; // оставшиеся единицы
-            } else {
-                unitsInGroup = rnd.nextInt(0, countUnits - (rndGroups - i - 1) + 1);
-                countUnits -= unitsInGroup;
-            }
-
-
-            Vector2D seed = seeds.get(i);
-            var factory = factories.get(rnd.nextInt(0, factories.size()));
-
-            for (int k = 0; k < unitsInGroup; k++) {
-
-                // случайное смещение вокруг seed
-                double angle = rnd.nextDouble() * 2 * Math.PI;
-                double distance = rnd.nextDouble() * SPAWN_RADIUS;
-
-                double offsetX = Math.cos(angle) * distance;
-                double offsetY = Math.sin(angle) * distance;
-
-                Vector2D spawnPos = new Vector2D(seed.getX() + offsetX, seed.getY() + offsetY);
-
-                Unit newUnit = factory.createUnit(spawnPos);
-                newUnit.setColor(ENEMY_COLOR);
-                units.add(newUnit);
-            }
-        }
-        // Встановлення лідера клану
-        ClanLeader.getInstance(units.get(rnd.nextInt(0, units.size())));
+        setupGameLoop();          // Налаштування та запуск циклу
     }
 
     // Шукає найближчого ворожого юніта
@@ -197,7 +101,7 @@ public class StartController {
         double minDistanceSq = Double.MAX_VALUE; // Квадрат відстані
 
         for (Unit otherUnit : allUnits) {
-            if(!otherUnit.isAlive()) continue;
+            if (!otherUnit.isAlive()) continue;
             // Перевіряємо, що це не той самий юніт і що це ворог (інший колір)
             if (currentUnit != otherUnit && otherUnit.getColor() != friendColor) {
                 double distSq = currentUnit.getPosition().distanceSq(otherUnit.getPosition());
@@ -340,19 +244,13 @@ public class StartController {
 
         // 3. Виведення статистики
         gc.setFill(FRIEND_COLOR);
-        gc.fillText(String.format("Кількість BLUE: %s",
-                units.stream()
-                        .filter(unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR))
-                        .count()
-        ), 10, 15);
+        gc.fillText(String.format("Кількість BLUE: %s", units.stream().filter(
+                unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR)).count()), 10, 15);
 
         gc.fillText(String.format("Лідер: %s", ClanLeader.getInstance().getLeader().getName()), 10, 45);
 
         gc.setFill(ENEMY_COLOR);
-        gc.fillText(String.format("Кількість RED: %s",
-                units.stream()
-                        .filter(unit -> unit.isAlive() && unit.getColor().equals(Color.RED))
-                        .count()
-        ), 10, 30);
+        gc.fillText(String.format("Кількість RED: %s", units.stream().filter(
+                unit -> unit.isAlive() && unit.getColor().equals(Color.RED)).count()), 10, 30);
     }
 }
