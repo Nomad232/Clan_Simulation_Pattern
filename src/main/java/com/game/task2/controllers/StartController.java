@@ -53,6 +53,7 @@ public class StartController {
     private Canvas mainCanvas; // Сам холст
 
     // Викликається при завантаженні FXML
+    @FXML
     public void initialize() {
 
         // Прив'язка розміру Canvas до розміру Pane
