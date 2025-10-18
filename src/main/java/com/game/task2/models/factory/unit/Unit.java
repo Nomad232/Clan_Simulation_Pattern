@@ -1,9 +1,6 @@
 package com.game.task2.models.factory.unit;
 
-import com.game.task2.models.other.Attackable;
-import com.game.task2.models.other.Movable;
-import com.game.task2.models.other.Renderable;
-import com.game.task2.models.other.Vector2D;
+import com.game.task2.models.other.*;
 
 public interface Unit extends Cloneable, Renderable, Movable, Attackable<Unit> {
     void spawn(Vector2D vector);
@@ -12,6 +9,9 @@ public interface Unit extends Cloneable, Renderable, Movable, Attackable<Unit> {
 
     String getName();
     int getHealth();
+
+    ClothingType getClothing();
+    HeightType getHeight();
 
     Unit clone();
 }

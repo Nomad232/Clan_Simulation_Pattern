@@ -1,5 +1,7 @@
 package com.game.task2.models.factory.unit;
 
+import com.game.task2.models.other.ClothingType;
+import com.game.task2.models.other.HeightType;
 import com.game.task2.models.other.Vector2D;
 import com.game.task2.models.other.WeaponType;
 import javafx.scene.canvas.GraphicsContext;
@@ -10,7 +12,10 @@ public class ClanUnit implements Unit {
     protected int health;              // Поточне здоров'я
     protected boolean alive;           // Чи живий юніт
     protected Vector2D position;       // Позиція на полі бою
-    protected WeaponType weapon;        // Тип зброї
+    protected WeaponType weaponType;        // Тип зброї
+    protected ClothingType clothingType;
+    protected HeightType heightType;
+
     protected Color color;             // Колір для відображення
 
     public ClanUnit() {
@@ -18,25 +23,32 @@ public class ClanUnit implements Unit {
         this.name = "Empty";
         this.alive = true;
         this.position = new Vector2D();
-        this.weapon = WeaponType.NONE;
+        this.weaponType = WeaponType.NONE;
+        this.clothingType = ClothingType.NONE;
+        this.heightType = HeightType.AVERAGE;
         this.color = Color.BLUE;
     }
 
-    // Конструктор з повним набором параметрів
-    public ClanUnit(String name, int health, WeaponType weapon, Vector2D position, Color color) {
+    public ClanUnit(String name, Color color, HeightType heightType, ClothingType clothingType,
+                    WeaponType weaponType, Vector2D position, boolean alive, int health) {
         this.name = name;
-        this.health = health;
-        this.weapon = weapon;
-        this.position = position;
-        this.alive = true; // Юніт створюється живим
         this.color = color;
+        this.heightType = heightType;
+        this.clothingType = clothingType;
+        this.weaponType = weaponType;
+        this.position = position;
+        this.alive = alive;
+        this.health = health;
     }
 
     // Конструктор за замовчуванням кольору (синій)
-    public ClanUnit(String name, int health, WeaponType weapon, Vector2D position) {
+    public ClanUnit(String name, int health, WeaponType weaponType, ClothingType clothingType,
+                    HeightType heightType, Vector2D position) {
         this.name = name;
         this.health = health;
-        this.weapon = weapon;
+        this.heightType = heightType;
+        this.clothingType = clothingType;
+        this.weaponType = weaponType;
         this.position = position;
         this.alive = true; // Юніт створюється живим
         color = Color.BLUE; // Колір за замовчуванням
@@ -69,12 +81,12 @@ public class ClanUnit implements Unit {
 
         // Розрахунок дистанції, дальності та шкоди
         double distance = position.distanceTo(target.getPosition());
-        double range = weapon.getRange();
-        int damage = weapon.getDamage();
+        double range = weaponType.getRange();
+        int damage = weaponType.getDamage();
 
         // Перевірка, чи ціль знаходиться в радіусі дії
         if (distance <= range) {
-            System.out.println(name + " атакує " + target + " з " + weapon + " і завдає " + damage + " шкоди!");
+            System.out.println(name + " атакує " + target + " з " + weaponType + " і завдає " + damage + " шкоди!");
             target.takeDamage(damage); // Ціль отримує шкоду
             return true;
         } else {
@@ -136,8 +148,18 @@ public class ClanUnit implements Unit {
     }
 
     @Override
-    public WeaponType getWeapon() {
-        return weapon;
+    public ClothingType getClothing() {
+        return clothingType;
+    }
+
+    @Override
+    public HeightType getHeight() {
+        return heightType;
+    }
+
+    @Override
+    public WeaponType getWeaponType() {
+        return weaponType;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.game.task2.controllers;
 
+import com.game.task2.models.bridge.*;
 import com.game.task2.models.other.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
 import com.game.task2.models.factory.elf.Elf;
@@ -175,6 +176,12 @@ public class StartController {
 
         // Обробка логіки для кожного юніта
         for (Unit unitA : units) {
+            //Вивід інформації у консоль
+            UnitReport report = new ShortUnitReport(new ColoredConsoleOutputter());
+            report.display(unitA);
+
+
+
             // 1. Пошук найближчого ворога
             Unit targetEnemy = findNearestEnemy(unitA, units);
 
@@ -188,7 +195,7 @@ public class StartController {
             double distanceSq = currentPos.distanceSq(targetPos); // Квадрат відстані
 
             // Квадрат радіуса атаки
-            double attackRange = unitA.getWeapon().getRange();
+            double attackRange = unitA.getWeaponType().getRange();
             double attackRangeSq = attackRange * attackRange;
 
             // 3. Логіка атаки (якщо в ренжі та настав час)
