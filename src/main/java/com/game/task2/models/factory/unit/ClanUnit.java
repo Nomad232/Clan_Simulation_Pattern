@@ -187,6 +187,18 @@ public class ClanUnit implements Unit {
         }
     }
 
+    @Override
+    public <T extends Unit> void restoreFrom(T unit) {
+        this.name = unit.getName();
+        this.health = unit.getHealth();
+        this.heightType = unit.getHeight();
+        this.clothingType = unit.getClothing();
+        this.weaponType = unit.getWeaponType();
+        this.position = unit.getPosition();
+        this.alive = unit.isAlive();
+        this.color = unit.getColor();
+    }
+
     // Перевизначення методу для зручного виведення в консоль
     @Override
     public String toString() {

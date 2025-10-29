@@ -1,9 +1,7 @@
 package com.game.task2.controllers;
 
-import com.game.task2.models.bridge.*;
 import com.game.task2.models.other.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
-import com.game.task2.models.factory.elf.Elf;
 import com.game.task2.models.singleton.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.other.Vector2D;
@@ -24,12 +22,10 @@ import java.util.Random;
 
 import static com.game.task2.models.other.Renderable.UNIT_SIZE;
 
-// Головний контролер для керування симуляцією (FX-контролер)
 public class StartController {
     private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
     private static final Color ENEMY_COLOR = Color.RED;   // Колір ворожої фракції
     private static final double SPAWN_RADIUS = 60.0;
-    private double attackThrottleTimer = 0.0; // Таймер для обмеження частоти атаки
     private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
@@ -148,7 +144,7 @@ public class StartController {
                 double deltaTime = (now - lastTime) / 1_000_000_000.0;
 
                 // 1. ОНОВЛЕННЯ ЛОГІКИ
-                updateGame(deltaTime);
+                update(deltaTime);
 
                 // 2. ВІДТВОРЕННЯ
                 draw();
@@ -161,71 +157,8 @@ public class StartController {
     }
 
     // --- ЛОГІКА ОНОВЛЕННЯ (UPDATE) ---
-    private void updateGame(double deltaTime) {
-        // Швидкості для різних типів юнітів
-        final double ELF_SPEED = 40.0;
-        final double OTHER_SPEED = 30.0;
+    private void update(double deltaTime) {
 
-        attackThrottleTimer += deltaTime;
-        double ATTACK_FREQUENCY = 1; // Атака раз на 1 секунду
-        boolean shouldAttack = attackThrottleTimer >= ATTACK_FREQUENCY;
-
-        if (shouldAttack) {
-            attackThrottleTimer = 0.0;
-        }
-
-        // Обробка логіки для кожного юніта
-        for (Unit unitA : units) {
-            //Вивід інформації у консоль
-            UnitReport report = new FullUnitReport(new ColoredConsoleOutputter());
-            report.display(unitA);
-
-
-
-            // 1. Пошук найближчого ворога
-            Unit targetEnemy = findNearestEnemy(unitA, units);
-
-            if (targetEnemy == null) {
-                continue; // Ворогів немає
-            }
-
-            // 2. Розрахунок відстаней
-            Vector2D currentPos = unitA.getPosition();
-            Vector2D targetPos = targetEnemy.getPosition();
-            double distanceSq = currentPos.distanceSq(targetPos); // Квадрат відстані
-
-            // Квадрат радіуса атаки
-            double attackRange = unitA.getWeaponType().getRange();
-            double attackRangeSq = attackRange * attackRange;
-
-            // 3. Логіка атаки (якщо в ренжі та настав час)
-            if (shouldAttack && distanceSq <= attackRangeSq) {
-                if (unitA.attack(targetEnemy)) {
-                    // Обробка смерті (якщо необхідно)
-                }
-            }
-
-            // 4. Логіка руху (рух до ворога, ТІЛЬКИ якщо він поза ренжем)
-            if (distanceSq > attackRangeSq) {
-
-                double speed = unitA instanceof Elf ? ELF_SPEED : OTHER_SPEED; // Швидкість (елфи швидші)
-
-                // Розрахунок вектора напрямку та руху
-                Vector2D direction = targetPos.subtract(currentPos).normalize();
-                Vector2D movementVector = direction.multiply(speed * deltaTime);
-
-                // 5. Застосування руху
-                Vector2D nextPosition = unitA.getPosition().add(movementVector);
-                Vector2D clampedPosition = clampPosition(nextPosition); // Перевірка границь
-
-                // Встановлення нової позиції
-                unitA.setPosition(clampedPosition);
-
-            } else {
-                // Юніт знаходиться в ренжі, стоїть на місці
-            }
-        }
-        units.removeIf(x -> !x.isAlive());
     }
 
     // --- ВІДТВОРЕННЯ (RENDER) ---
