@@ -10,7 +10,7 @@ import java.io.IOException;
 
 public class StartGameApp extends Application {
     private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    private static final int HEIGHT = 500;
 
     @Override
     public void start(Stage stage) throws IOException {

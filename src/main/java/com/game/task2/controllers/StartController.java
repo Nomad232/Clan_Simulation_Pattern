@@ -177,7 +177,7 @@ public class StartController {
         // Обробка логіки для кожного юніта
         for (Unit unitA : units) {
             //Вивід інформації у консоль
-            UnitReport report = new ShortUnitReport(new ColoredConsoleOutputter());
+            UnitReport report = new FullUnitReport(new ColoredConsoleOutputter());
             report.display(unitA);
 
 
