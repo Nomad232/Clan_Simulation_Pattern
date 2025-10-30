@@ -188,7 +188,7 @@ public class ClanUnit implements Unit {
     }
 
     @Override
-    public <T extends Unit> void restoreFrom(T unit) {
+    public void restoreFrom(Unit unit) {
         this.name = unit.getName();
         this.health = unit.getHealth();
         this.heightType = unit.getHeight();

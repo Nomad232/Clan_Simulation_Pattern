@@ -1,5 +1,10 @@
 package com.game.task2.controllers;
 
+import com.game.task2.models.aiController.AiController;
+import com.game.task2.models.chainOfResponsibility.AttackHandler;
+import com.game.task2.models.chainOfResponsibility.CommandHandler;
+import com.game.task2.models.chainOfResponsibility.FindNearestEnemyHandler;
+import com.game.task2.models.chainOfResponsibility.MoveHandler;
 import com.game.task2.models.other.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
 import com.game.task2.models.singleton.ClanLeader;
@@ -29,6 +34,7 @@ public class StartController {
     private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
+    private AiController aiController;
 
     @FXML
     private Spinner<Integer> minGroup;
@@ -48,6 +54,17 @@ public class StartController {
     private Pane canvasPane; // Контейнер для холста
     @FXML
     private Canvas mainCanvas; // Сам холст
+
+    public StartController(){
+        CommandHandler findHandler = new FindNearestEnemyHandler();
+        CommandHandler moveHandler = new MoveHandler();
+        CommandHandler attackHandler = new AttackHandler();
+
+        findHandler.setNext(moveHandler);
+        moveHandler.setNext(attackHandler);
+
+        aiController = new AiController(findHandler);
+    }
 
     // Викликається при завантаженні FXML
     @FXML
@@ -89,28 +106,6 @@ public class StartController {
         units.addAll(enemyUnits);
 
         setupGameLoop();          // Налаштування та запуск циклу
-    }
-
-    // Шукає найближчого ворожого юніта
-    private Unit findNearestEnemy(Unit currentUnit, List<Unit> allUnits) {
-        if (!currentUnit.isAlive()) return null;
-        Color friendColor = currentUnit.getColor();
-        Unit nearestEnemy = null;
-        double minDistanceSq = Double.MAX_VALUE; // Квадрат відстані
-
-        for (Unit otherUnit : allUnits) {
-            if (!otherUnit.isAlive()) continue;
-            // Перевіряємо, що це не той самий юніт і що це ворог (інший колір)
-            if (currentUnit != otherUnit && otherUnit.getColor() != friendColor) {
-                double distSq = currentUnit.getPosition().distanceSq(otherUnit.getPosition());
-
-                if (distSq < minDistanceSq) {
-                    minDistanceSq = distSq;
-                    nearestEnemy = otherUnit;
-                }
-            }
-        }
-        return nearestEnemy;
     }
 
     // Обмежує позицію юніта в межах холста
@@ -158,7 +153,10 @@ public class StartController {
 
     // --- ЛОГІКА ОНОВЛЕННЯ (UPDATE) ---
     private void update(double deltaTime) {
-
+        for(Unit currentUnit : units){
+            aiController.makeDecision(currentUnit, units, deltaTime);
+        }
+        units.removeIf(unit -> !unit.isAlive());
     }
 
     // --- ВІДТВОРЕННЯ (RENDER) ---

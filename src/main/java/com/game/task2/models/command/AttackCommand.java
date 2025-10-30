@@ -24,4 +24,16 @@ public class AttackCommand implements Command {
             target.restoreFrom(copy);
         }
     }
+
+    public Unit getObject() {
+        return object;
+    }
+
+    public Unit getTarget() {
+        return target;
+    }
+
+    public Unit getCopy() {
+        return copy;
+    }
 }

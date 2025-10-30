@@ -14,5 +14,5 @@ public interface Unit extends Cloneable, Renderable, Movable, Attackable<Unit> {
     HeightType getHeight();
 
     Unit clone();
-    <T extends Unit> void restoreFrom(T unit);
+    void restoreFrom(Unit unit);
 }
