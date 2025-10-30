@@ -42,16 +42,16 @@ public class AiController {
             double distanceToEnemySq = unit.getPosition().distanceSq(targetEnemy.getPosition());
 
             if (distanceToEnemySq <= attackRangeSq) {
-                // РЕШЕНИЕ: Атаковать! (Враг в зоне досягаемости)
+                // Атаковать! (Враг в зоне досягаемости)
                 nextAction = new AttackCommand(unit, targetEnemy);
 
             } else {
-                // РЕШЕНИЕ: Двигаться к врагу! (Враг далеко)
+                // Двигаться к врагу! (Враг далеко)
                 nextAction = new MoveCommand(unit, targetEnemy.getPosition(), deltaTime*SPEED);
             }
 
         } else {
-            // РЕШЕНИЕ: Патрулировать! (Врагов нет)
+            // Патрулировать! (Врагов нет)
             Vector2D patrolPoint = getPatrolPoint(unit, deltaTime*SPEED);
             nextAction = new MoveCommand(unit, patrolPoint, deltaTime*SPEED);
         }
@@ -59,11 +59,10 @@ public class AiController {
         commandExecutor.handle(nextAction, unit);
     }
 
-    // Вспомогательный метод для примера
     private Vector2D getPatrolPoint(Unit unit, double deltaTime) {
         double currentX = unit.getPosition().getX();
         double currentY = unit.getPosition().getY();
-        if (currentX == 100 && currentY == 100) {
+        if (currentX >= 100 && currentY >= 100) {
             return new Vector2D(0, 0);
         }
         return new Vector2D(100 * deltaTime, 100 * deltaTime);

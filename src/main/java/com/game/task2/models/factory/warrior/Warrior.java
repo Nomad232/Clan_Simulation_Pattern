@@ -21,7 +21,7 @@ public class Warrior extends ClanUnit {
     }
 
     public Warrior(Vector2D pos, WeaponType type) {
-        super("Warrior", 150, type, ClothingType.IRON, HeightType.AVERAGE, pos);
+        super("Warrior", 500, type, ClothingType.IRON, HeightType.AVERAGE, pos);
     }
 
     @Override

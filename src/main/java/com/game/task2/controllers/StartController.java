@@ -34,7 +34,7 @@ public class StartController {
     private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
-    private AiController aiController;
+    private final AiController aiController;
 
     @FXML
     private Spinner<Integer> minGroup;
@@ -83,7 +83,7 @@ public class StartController {
 
     }
 
-    // Скидає та створює нову симуляцію
+    // NEW SIMULATION
     @FXML
     private void newSimulation() {
         int minGroups = minGroup.getValue();
@@ -108,20 +108,7 @@ public class StartController {
         setupGameLoop();          // Налаштування та запуск циклу
     }
 
-    // Обмежує позицію юніта в межах холста
-    private Vector2D clampPosition(Vector2D pos) {
-        double minX = 0;
-        double minY = 0;
-        double maxX = mainCanvas.getWidth() - UNIT_SIZE;
-        double maxY = mainCanvas.getHeight() - UNIT_SIZE;
-
-        double newX = Math.max(minX, Math.min(pos.getX(), maxX));
-        double newY = Math.max(minY, Math.min(pos.getY(), maxY));
-
-        return new Vector2D(newX, newY);
-    }
-
-    // Налаштовує ігровий цикл (AnimationTimer)
+    // TIMER
     private void setupGameLoop() {
         if (gameLoop != null) return;
 
@@ -151,7 +138,7 @@ public class StartController {
         gameLoop.start();
     }
 
-    // --- ЛОГІКА ОНОВЛЕННЯ (UPDATE) ---
+    // UPDATE
     private void update(double deltaTime) {
         for(Unit currentUnit : units){
             aiController.makeDecision(currentUnit, units, deltaTime);
@@ -159,7 +146,7 @@ public class StartController {
         units.removeIf(unit -> !unit.isAlive());
     }
 
-    // --- ВІДТВОРЕННЯ (RENDER) ---
+    // RENDER
     private void draw() {
         GraphicsContext gc = mainCanvas.getGraphicsContext2D();
 
