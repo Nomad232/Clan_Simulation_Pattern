@@ -59,6 +59,8 @@ public class AiController {
         commandExecutor.handle(nextAction, unit);
     }
 
+    // public void makeDecisionByLeader
+
     private Vector2D getPatrolPoint(Unit unit, double deltaTime) {
         double currentX = unit.getPosition().getX();
         double currentY = unit.getPosition().getY();

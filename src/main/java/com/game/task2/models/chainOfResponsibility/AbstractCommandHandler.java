@@ -7,9 +7,8 @@ public abstract class AbstractCommandHandler implements CommandHandler {
     protected CommandHandler next;
 
     @Override
-    public CommandHandler setNext(CommandHandler next) {
+    public void setNext(CommandHandler next) {
         this.next = next;
-        return this;
     }
 
     @Override
