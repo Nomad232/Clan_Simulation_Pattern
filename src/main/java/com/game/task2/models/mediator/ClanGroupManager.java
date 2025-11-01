@@ -10,6 +10,7 @@ import com.game.task2.models.command.FindNearestEnemyCommand;
 import com.game.task2.models.command.MoveCommand;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.other.Vector2D;
+import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,7 +18,7 @@ import java.util.List;
 import java.util.Random;
 
 public class ClanGroupManager implements GroupManager {
-    private final double SPEED = 15.0;
+    private final double SPEED = 25.0;
     private CommandHandler commandExecutor;
     private List<Unit> units;
 
@@ -78,49 +79,19 @@ public class ClanGroupManager implements GroupManager {
     @Override
     public boolean moveOrAttackNearestTarget(List<Unit> targets, double deltaTime) {
         if (units.isEmpty() || targets.isEmpty()) return false;
-        FindNearestEnemyCommand findCmd = new FindNearestEnemyCommand(units.getFirst(),List.of(targets.getFirst()));
-        commandExecutor.handle(findCmd, null);
+        List<Unit> enemies = getEnemies(targets);
+        Unit searcher = units.stream()
+                .filter(Unit::isAlive)
+                .findFirst()
+                .orElse(null);
+        if (enemies.isEmpty() || searcher == null) return false;
+
+        FindNearestEnemyCommand findCmd = new FindNearestEnemyCommand(searcher, enemies);
+
+        commandExecutor.handle(findCmd, searcher);
 
         Unit targetEnemy = findCmd.getNearestTarget();
         System.out.println(targetEnemy);
-        for (Unit unit : units) {
-
-            Command nextAction;
-            if (targetEnemy != null) {
-                // Враг найден! Проверяем дистанцию.
-
-                double attackRange = unit.getWeaponType().getRange();
-                double attackRangeSq = attackRange * attackRange; // Сравниваем квадраты
-
-                // Пересчитываем расстояние
-                double distanceToEnemySq = unit.getPosition().distanceSq(targetEnemy.getPosition());
-
-                if (distanceToEnemySq <= attackRangeSq) {
-                    // Атаковать! (Враг в зоне досягаемости)
-                    nextAction = new AttackCommand(unit, targetEnemy);
-
-                } else {
-                    // Двигаться к врагу! (Враг далеко)
-                    nextAction = new MoveCommand(unit, targetEnemy.getPosition(), deltaTime * SPEED);
-                }
-
-                commandExecutor.handle(nextAction, unit);
-            } else {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean moveOrAttackRandomTarget(List<Unit> targets, double deltaTime) {
-        if (units.isEmpty() || targets.isEmpty()) return false;
-        int random = new Random().nextInt(0, targets.size());
-        FindNearestEnemyCommand findCmd = new FindNearestEnemyCommand(units.getFirst(), List.of(targets.get(random)));
-        commandExecutor.handle(findCmd, null);
-
-        Unit targetEnemy = findCmd.getNearestTarget();
-
         for (Unit unit : units) {
 
             Command nextAction;
@@ -166,5 +137,15 @@ public class ClanGroupManager implements GroupManager {
             return new Vector2D(0, 0);
         }
         return new Vector2D(100 * deltaTime, 100 * deltaTime);
+    }
+
+    private List<Unit> getEnemies(List<Unit> targets){
+        if (units.isEmpty() || targets.isEmpty()) return new ArrayList<>();
+
+        Color friendlyColor = units.getFirst().getColor();
+
+        return targets.stream()
+                .filter(unit -> unit.getColor() != friendlyColor && unit.isAlive())
+                .toList();
     }
 }

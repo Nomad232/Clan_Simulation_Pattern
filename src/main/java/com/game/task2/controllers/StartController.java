@@ -31,6 +31,8 @@ public class StartController {
 
     private ClanGroupManager blueGroupManager;
     private ClanLeader blueLeader;
+    private ClanGroupManager redGroupManager;
+    private ClanLeader redLeader;
 
     @FXML
     private Spinner<Integer> minGroup;
@@ -81,6 +83,8 @@ public class StartController {
 
         blueLeader = null;
         blueGroupManager = null;
+        redLeader = null;
+        redGroupManager = null;
         units.clear();      // Очищування списку
 
         List<Unit> friendUnits = UnitGenerationMethods.createUnitsByRandomSeeds(
@@ -142,11 +146,22 @@ public class StartController {
             blueLeader = new ClanLeader(blueUnit, blueGroupManager);
         }
 
-        List<Unit> redUnits = units.stream()
-                .filter(unit -> unit.getColor() == ENEMY_COLOR)
-                .toList();;
+        if (redGroupManager == null){
+            List<Unit> redUnits = units.stream()
+                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
+                    .toList();
+            redGroupManager = new ClanGroupManager(redUnits);
+        }
+        if (redLeader == null){
+            Unit redUnit = units.stream()
+                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
+                    .findFirst()
+                    .orElse(new ClanUnit());
+            redLeader = new ClanLeader(redUnit, redGroupManager);
+        }
 
-        blueLeader.randomUpdate(redUnits, deltaTime);
+        redLeader.randomUpdate(units,deltaTime);
+        blueLeader.randomUpdate(units, deltaTime);
 
         units.removeIf(unit -> !unit.isAlive());
     }
@@ -164,7 +179,7 @@ public class StartController {
         for (Unit unit : units) {
             if (unit.isAlive()) {
                 // Лідер клану виділяється жовтим
-                if (unit == blueLeader.getLeader()) {
+                if (unit == blueLeader.getLeader() || unit == redLeader.getLeader()) {
                     Renderable customRender = new CustomRenderForUnit(unit);
                     customRender.render(gc);
                 } else {

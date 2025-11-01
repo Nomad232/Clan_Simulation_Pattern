@@ -8,15 +8,15 @@ import java.util.Random;
 
 
 public class ClanLeader {
-    private Unit leader;
-    private GroupManager mediator;
-    private double delayUpdate = 0; // 5 сек
+    private final Unit leader;
+    private final GroupManager mediator;
+    private double changeStateDelay = 0; // 5 сек
     private static final Random RAND = new Random();
     private State currentState;
 
     private enum State {
         ATTACK,
-        DEFFENCE,
+        //DEFFENCE,
         PATROL
     }
 
@@ -30,16 +30,18 @@ public class ClanLeader {
     }
 
     public void randomUpdate(List<Unit> otherUnits, double deltaTime) {
-        delayUpdate += deltaTime;
-        if (delayUpdate >= 5){
+        if(mediator.getUnits().isEmpty()) return;
+
+        changeStateDelay += deltaTime;
+        if (changeStateDelay >= 2){
             currentState = getRandomState();
-            delayUpdate = 0;
+            changeStateDelay = 0;
         }
 
         switch (currentState){
             case ATTACK -> mediator.moveOrAttackNearestTarget(otherUnits, deltaTime);
-            case PATROL -> mediator.patrol(deltaTime);
-            case DEFFENCE -> mediator.moveToTarget(mediator.getUnits().getFirst(), deltaTime);
+            case PATROL -> mediator.patrol(deltaTime*0.25);
+            //case DEFFENCE -> mediator.moveToTarget(mediator.getUnits().getFirst(), deltaTime);
             default -> throw new RuntimeException("STATE");
         }
 

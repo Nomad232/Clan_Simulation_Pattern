@@ -12,7 +12,6 @@ public interface GroupManager {
     void move(Vector2D targetCord, double deltaTime);
     boolean moveToTarget(Unit target, double deltaTime);
     boolean moveOrAttackNearestTarget(List<Unit> targets, double deltaTime);
-    boolean moveOrAttackRandomTarget(List<Unit> targets, double deltaTime);
 
     void patrol(double deltaTime);
 }
