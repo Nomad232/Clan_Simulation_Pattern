@@ -1,15 +1,11 @@
 package com.game.task2.controllers;
 
-import com.game.task2.models.aiController.AiController;
-import com.game.task2.models.chainOfResponsibility.AttackHandler;
-import com.game.task2.models.chainOfResponsibility.CommandHandler;
-import com.game.task2.models.chainOfResponsibility.FindNearestEnemyHandler;
-import com.game.task2.models.chainOfResponsibility.MoveHandler;
+import com.game.task2.models.factory.unit.ClanUnit;
+import com.game.task2.models.mediator.ClanGroupManager;
 import com.game.task2.models.other.Renderable;
 import com.game.task2.models.decorator.CustomRenderForUnit;
-import com.game.task2.models.singleton.ClanLeader;
+import com.game.task2.models.mediator.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
-import com.game.task2.models.other.Vector2D;
 import com.game.task2.models.util.UnitGenerationMethods;
 import javafx.animation.AnimationTimer;
 import javafx.fxml.FXML;
@@ -23,9 +19,7 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
-
-import static com.game.task2.models.other.Renderable.UNIT_SIZE;
+import java.util.stream.Collectors;
 
 public class StartController {
     private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
@@ -34,7 +28,9 @@ public class StartController {
     private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
-    private final AiController aiController;
+
+    private ClanGroupManager blueGroupManager;
+    private ClanLeader blueLeader;
 
     @FXML
     private Spinner<Integer> minGroup;
@@ -56,14 +52,6 @@ public class StartController {
     private Canvas mainCanvas; // Сам холст
 
     public StartController(){
-        CommandHandler findHandler = new FindNearestEnemyHandler();
-        CommandHandler moveHandler = new MoveHandler();
-        CommandHandler attackHandler = new AttackHandler();
-
-        findHandler.setNext(moveHandler);
-        moveHandler.setNext(attackHandler);
-
-        aiController = new AiController(findHandler);
     }
 
     // Викликається при завантаженні FXML
@@ -91,7 +79,8 @@ public class StartController {
         int friendUnitsCount = (int) friendCountSlider.getValue();
         int enemyUnitsCount = (int) friendCountSlider.getValue();
 
-        ClanLeader.reset(); // Скидання Singleton лідера
+        blueLeader = null;
+        blueGroupManager = null;
         units.clear();      // Очищування списку
 
         List<Unit> friendUnits = UnitGenerationMethods.createUnitsByRandomSeeds(
@@ -99,13 +88,10 @@ public class StartController {
         List<Unit> enemyUnits = UnitGenerationMethods.createUnitsByRandomSeeds(
                 mainCanvas, enemyUnitsCount, minGroups, maxGroups, SPAWN_RADIUS, ENEMY_COLOR);
 
-        // Встановлення лідера клану (Singleton)
-        ClanLeader.getInstance(friendUnits.get(new Random().nextInt(0, friendUnits.size())));
-
         units.addAll(friendUnits);
         units.addAll(enemyUnits);
 
-        setupGameLoop();          // Налаштування та запуск циклу
+        setupGameLoop(); // Налаштування та запуск циклу
     }
 
     // TIMER
@@ -140,9 +126,28 @@ public class StartController {
 
     // UPDATE
     private void update(double deltaTime) {
-        for(Unit currentUnit : units){
-            aiController.makeDecision(currentUnit, units, deltaTime);
+        if (blueGroupManager == null){
+            List<Unit> blueUnits = units.stream()
+                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
+                    .toList();
+            blueGroupManager = new ClanGroupManager(blueUnits);
         }
+
+        if (blueLeader == null){
+            Unit blueUnit = units.stream()
+                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
+                    .findFirst()
+                    .orElse(new ClanUnit());
+
+            blueLeader = new ClanLeader(blueUnit, blueGroupManager);
+        }
+
+        List<Unit> redUnits = units.stream()
+                .filter(unit -> unit.getColor() == ENEMY_COLOR)
+                .toList();;
+
+        blueLeader.randomUpdate(redUnits, deltaTime);
+
         units.removeIf(unit -> !unit.isAlive());
     }
 
@@ -159,7 +164,7 @@ public class StartController {
         for (Unit unit : units) {
             if (unit.isAlive()) {
                 // Лідер клану виділяється жовтим
-                if (unit == ClanLeader.getInstance().getLeader()) {
+                if (unit == blueLeader.getLeader()) {
                     Renderable customRender = new CustomRenderForUnit(unit);
                     customRender.render(gc);
                 } else {
@@ -173,7 +178,7 @@ public class StartController {
         gc.fillText(String.format("Кількість BLUE: %s", units.stream().filter(
                 unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR)).count()), 10, 15);
 
-        gc.fillText(String.format("Лідер: %s", ClanLeader.getInstance().getLeader().getName()), 10, 45);
+        gc.fillText(String.format("Лідер: %s", blueLeader.getLeader().getName()), 10, 45);
 
         gc.setFill(ENEMY_COLOR);
         gc.fillText(String.format("Кількість RED: %s", units.stream().filter(
