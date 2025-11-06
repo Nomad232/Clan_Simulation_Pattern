@@ -36,6 +36,7 @@ public class ClanLeader {
         if (changeStateDelay >= 2){
             currentState = getRandomState();
             changeStateDelay = 0;
+            System.out.println("Команда: [" + currentState + "] від лідера: " + leader);
         }
 
         switch (currentState){
@@ -45,7 +46,7 @@ public class ClanLeader {
             default -> throw new RuntimeException("STATE");
         }
 
-        System.out.println("Команда: [" + currentState + "] від лідера: " + leader);
+
     }
 
     private State getRandomState() {

@@ -1,9 +1,12 @@
 package com.game.task2.models.factory.unit;
 
+import com.game.task2.models.command.Command;
 import com.game.task2.models.other.ClothingType;
 import com.game.task2.models.other.HeightType;
 import com.game.task2.models.other.Vector2D;
 import com.game.task2.models.other.WeaponType;
+import com.game.task2.models.state.ClanUnitState;
+import com.game.task2.models.state.NormalState;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
@@ -15,6 +18,9 @@ public class ClanUnit implements Unit {
     protected WeaponType weaponType;        // Тип зброї
     protected ClothingType clothingType;
     protected HeightType heightType;
+
+    private ClanUnitState state = new NormalState();
+    private ClanUnitState previousState = new NormalState();
 
     protected Color color;             // Колір для відображення
 
@@ -123,6 +129,7 @@ public class ClanUnit implements Unit {
 
     @Override
     public void takeDamage(int number) {
+        if (!isAlive()) return;
         health -= number;
         if (health <= 0) {
             health = 0;
@@ -222,5 +229,24 @@ public class ClanUnit implements Unit {
     @Override
     public Color getColor() {
         return color;
+    }
+
+    public void setState(ClanUnitState newState) {
+        if (this.state != null) {
+            this.previousState = this.state;
+        }
+        this.state = newState;
+    }
+
+    public void handleCommand(Command command) {
+        state.handleCommand(this, command);
+    }
+
+    public ClanUnitState getPreviousState() {
+        return previousState;
+    }
+
+    public ClanUnitState getState() {
+        return state;
     }
 }

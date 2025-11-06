@@ -1,47 +1,28 @@
 package com.game.task2.models.mediator;
 
-import com.game.task2.models.chainOfResponsibility.AttackHandler;
-import com.game.task2.models.chainOfResponsibility.CommandHandler;
-import com.game.task2.models.chainOfResponsibility.FindNearestEnemyHandler;
-import com.game.task2.models.chainOfResponsibility.MoveHandler;
 import com.game.task2.models.command.AttackCommand;
 import com.game.task2.models.command.Command;
 import com.game.task2.models.command.FindNearestEnemyCommand;
 import com.game.task2.models.command.MoveCommand;
+import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.other.Vector2D;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Random;
 
 public class ClanGroupManager implements GroupManager {
     private final double SPEED = 25.0;
-    private CommandHandler commandExecutor;
     private List<Unit> units;
 
     public ClanGroupManager() {
         units = new ArrayList<>();
-
-        CommandHandler findNearestEnemyHandler = new FindNearestEnemyHandler();
-        CommandHandler attackHandler = new AttackHandler();
-        CommandHandler moveHandler = new MoveHandler();
-
-        findNearestEnemyHandler.setNext(moveHandler);
-        moveHandler.setNext(attackHandler);
-        commandExecutor = findNearestEnemyHandler;
     }
 
     public ClanGroupManager(List<Unit> units) {
         this();
         this.units = units;
-    }
-
-    public ClanGroupManager(CommandHandler handler) {
-        this();
-        this.commandExecutor = handler;
     }
 
     @Override
@@ -62,16 +43,21 @@ public class ClanGroupManager implements GroupManager {
     @Override
     public void move(Vector2D targetCord, double deltaTime) {
         for (Unit unit : units) {
-            Command moveCmd = new MoveCommand(unit, targetCord, deltaTime * SPEED);
-            commandExecutor.handle(moveCmd, unit);
+            if (unit instanceof ClanUnit clanUnit) {
+                Command moveCmd = new MoveCommand(unit, targetCord, deltaTime * SPEED);
+                clanUnit.handleCommand(moveCmd);
+            }
         }
     }
 
     @Override
     public boolean moveToTarget(Unit target, double deltaTime) {
         for (Unit unit : units) {
-            Command moveCmd = new MoveCommand(unit, target.getPosition(), deltaTime * SPEED);
-            commandExecutor.handle(moveCmd, unit);
+            if (unit instanceof ClanUnit clanUnit) {
+                Command moveCmd = new MoveCommand(unit, target.getPosition(), deltaTime * SPEED);
+                clanUnit.handleCommand(moveCmd);
+            }
+
         }
         return true;
     }
@@ -88,34 +74,36 @@ public class ClanGroupManager implements GroupManager {
 
         FindNearestEnemyCommand findCmd = new FindNearestEnemyCommand(searcher, enemies);
 
-        commandExecutor.handle(findCmd, searcher);
+        if (searcher instanceof ClanUnit clanUnit) {
+            clanUnit.handleCommand(findCmd);
 
-        Unit targetEnemy = findCmd.getNearestTarget();
-        System.out.println(targetEnemy);
-        for (Unit unit : units) {
 
-            Command nextAction;
-            if (targetEnemy != null) {
-                // Враг найден! Проверяем дистанцию.
+            Unit targetEnemy = findCmd.getNearestTarget();
+            for (Unit unit : units) {
 
-                double attackRange = unit.getWeaponType().getRange();
-                double attackRangeSq = attackRange * attackRange; // Сравниваем квадраты
+                Command nextAction;
+                if (targetEnemy != null) {
+                    // Враг найден! Проверяем дистанцию.
 
-                // Пересчитываем расстояние
-                double distanceToEnemySq = unit.getPosition().distanceSq(targetEnemy.getPosition());
+                    double attackRange = unit.getWeaponType().getRange();
+                    double attackRangeSq = attackRange * attackRange; // Сравниваем квадраты
 
-                if (distanceToEnemySq <= attackRangeSq) {
-                    // Атаковать! (Враг в зоне досягаемости)
-                    nextAction = new AttackCommand(unit, targetEnemy);
+                    // Пересчитываем расстояние
+                    double distanceToEnemySq = unit.getPosition().distanceSq(targetEnemy.getPosition());
 
+                    if (distanceToEnemySq <= attackRangeSq) {
+                        // Атаковать! (Враг в зоне досягаемости)
+                        nextAction = new AttackCommand(unit, targetEnemy);
+
+                    } else {
+                        // Двигаться к врагу! (Враг далеко)
+                        nextAction = new MoveCommand(unit, targetEnemy.getPosition(), deltaTime * SPEED);
+                    }
+
+                    clanUnit.handleCommand(nextAction);
                 } else {
-                    // Двигаться к врагу! (Враг далеко)
-                    nextAction = new MoveCommand(unit, targetEnemy.getPosition(), deltaTime * SPEED);
+                    return false;
                 }
-
-                commandExecutor.handle(nextAction, unit);
-            } else {
-                return false;
             }
         }
         return true;
@@ -124,9 +112,12 @@ public class ClanGroupManager implements GroupManager {
     @Override
     public void patrol(double deltaTime) {
         for (Unit unit : units) {
-            Vector2D patrolPoint = getPatrolPoint(unit, deltaTime * SPEED);
-            Command moveCmd = new MoveCommand(unit, patrolPoint, deltaTime * SPEED);
-            commandExecutor.handle(moveCmd, unit);
+            if (unit instanceof ClanUnit clanUnit) {
+                Vector2D patrolPoint = getPatrolPoint(unit, deltaTime * SPEED);
+                Command moveCmd = new MoveCommand(unit, patrolPoint, deltaTime * SPEED);
+                clanUnit.handleCommand(moveCmd);
+            }
+
         }
     }
 
@@ -139,7 +130,7 @@ public class ClanGroupManager implements GroupManager {
         return new Vector2D(100 * deltaTime, 100 * deltaTime);
     }
 
-    private List<Unit> getEnemies(List<Unit> targets){
+    private List<Unit> getEnemies(List<Unit> targets) {
         if (units.isEmpty() || targets.isEmpty()) return new ArrayList<>();
 
         Color friendlyColor = units.getFirst().getColor();
