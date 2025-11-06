@@ -16,7 +16,7 @@ public class ClanLeader {
 
     private enum State {
         ATTACK,
-        //DEFFENCE,
+        DEFFENCE,
         PATROL
     }
 
@@ -41,7 +41,7 @@ public class ClanLeader {
         switch (currentState){
             case ATTACK -> mediator.moveOrAttackNearestTarget(otherUnits, deltaTime);
             case PATROL -> mediator.patrol(deltaTime*0.25);
-            //case DEFFENCE -> mediator.moveToTarget(mediator.getUnits().getFirst(), deltaTime);
+            case DEFFENCE -> mediator.moveToTarget(mediator.getUnits().getFirst(), deltaTime);
             default -> throw new RuntimeException("STATE");
         }
 
