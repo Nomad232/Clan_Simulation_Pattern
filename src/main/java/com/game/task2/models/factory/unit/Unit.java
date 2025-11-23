@@ -8,6 +8,7 @@ public interface Unit extends Cloneable, Renderable, Movable, Attackable<Unit> {
     boolean isAlive();
 
     String getName();
+    void setName(String s);
     int getHealth();
 
     ClothingType getClothing();

@@ -19,6 +19,10 @@
                 <Button fx:id="newSimulationButton" onAction="#newSimulation" mnemonicParsing="false" text="Нова симуляція" />
                 <Button fx:id="startButton" mnemonicParsing="false" text="Продовжити" />
                 <Button fx:id="stopButton" mnemonicParsing="false" text="Стоп" />
+
+                <Button fx:id="saveButton" onAction="#save" style="-fx-background-color: green;" mnemonicParsing="false" text="Зберегти стан" />
+                <Button fx:id="loadButton" onAction="#load" style="-fx-background-color: green;" mnemonicParsing="false" text="Відновити стан" />
+
                 <Label text="BLUE:" />
                 <Slider fx:id="friendCountSlider" min="10" max="1000"
                         majorTickUnit="200"

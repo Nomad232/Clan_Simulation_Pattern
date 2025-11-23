@@ -2,9 +2,8 @@ package com.game.task2.controllers;
 
 import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.mediator.ClanGroupManager;
-import com.game.task2.models.other.Renderable;
-import com.game.task2.models.decorator.CustomRenderForUnit;
-import com.game.task2.models.mediator.ClanLeader;
+import com.game.task2.models.memento.Memory;
+import com.game.task2.models.other.ClanLeader;
 import com.game.task2.models.factory.unit.Unit;
 import com.game.task2.models.util.UnitGenerationMethods;
 import javafx.animation.AnimationTimer;
@@ -19,7 +18,6 @@ import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class StartController {
     private static final Color FRIEND_COLOR = Color.BLUE; // Колір дружньої фракції
@@ -28,6 +26,9 @@ public class StartController {
     private final List<Unit> units = new ArrayList<>(); // Список усіх юнітів у симуляції
     private AnimationTimer gameLoop; // Головний ігровий цикл
     private long lastTime = 0; // Для розрахунку deltaTime
+
+    private final Memory<ClanLeader> memoryRed = new Memory<>();
+    private final Memory<ClanLeader> memoryBlue = new Memory<>();
 
     private ClanGroupManager blueGroupManager;
     private ClanLeader blueLeader;
@@ -49,11 +50,15 @@ public class StartController {
     @FXML
     private Button stopButton;
     @FXML
+    private Button saveButton;
+    @FXML
+    private Button loadButton;
+    @FXML
     private Pane canvasPane; // Контейнер для холста
     @FXML
     private Canvas mainCanvas; // Сам холст
 
-    public StartController(){
+    public StartController() {
     }
 
     // Викликається при завантаженні FXML
@@ -95,7 +100,55 @@ public class StartController {
         units.addAll(friendUnits);
         units.addAll(enemyUnits);
 
+        setupUnits();
+
         setupGameLoop(); // Налаштування та запуск циклу
+    }
+
+    @FXML
+    private void save() {
+        if (redLeader == null || blueLeader == null) return;
+        memoryBlue.save(blueLeader);
+        memoryRed.save(redLeader);
+    }
+
+    @FXML
+    private void load() {
+        if (redLeader == null || blueLeader == null) return;
+        memoryBlue.undo(blueLeader);
+        memoryRed.undo(redLeader);
+    }
+
+    private void setupUnits() {
+        if (blueGroupManager == null) {
+            List<Unit> blueUnits = units.stream()
+                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
+                    .toList();
+            blueGroupManager = new ClanGroupManager(blueUnits);
+        }
+
+        if (blueLeader == null) {
+            Unit blueUnit = units.stream()
+                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
+                    .findFirst()
+                    .orElse(new ClanUnit());
+
+            blueLeader = new ClanLeader(blueUnit, blueGroupManager);
+        }
+
+        if (redGroupManager == null) {
+            List<Unit> redUnits = units.stream()
+                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
+                    .toList();
+            redGroupManager = new ClanGroupManager(redUnits);
+        }
+        if (redLeader == null) {
+            Unit redUnit = units.stream()
+                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
+                    .findFirst()
+                    .orElse(new ClanUnit());
+            redLeader = new ClanLeader(redUnit, redGroupManager);
+        }
     }
 
     // TIMER
@@ -130,40 +183,16 @@ public class StartController {
 
     // UPDATE
     private void update(double deltaTime) {
-        if (blueGroupManager == null){
-            List<Unit> blueUnits = units.stream()
-                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
-                    .toList();
-            blueGroupManager = new ClanGroupManager(blueUnits);
-        }
+        redLeader.randomUpdate(cloneUnits(), deltaTime);
+        blueLeader.randomUpdate(cloneUnits(), deltaTime);
+    }
 
-        if (blueLeader == null){
-            Unit blueUnit = units.stream()
-                    .filter(unit -> unit.getColor() == FRIEND_COLOR)
-                    .findFirst()
-                    .orElse(new ClanUnit());
-
-            blueLeader = new ClanLeader(blueUnit, blueGroupManager);
-        }
-
-        if (redGroupManager == null){
-            List<Unit> redUnits = units.stream()
-                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
-                    .toList();
-            redGroupManager = new ClanGroupManager(redUnits);
-        }
-        if (redLeader == null){
-            Unit redUnit = units.stream()
-                    .filter(unit -> unit.getColor() == ENEMY_COLOR)
-                    .findFirst()
-                    .orElse(new ClanUnit());
-            redLeader = new ClanLeader(redUnit, redGroupManager);
-        }
-
-        redLeader.randomUpdate(units,deltaTime);
-        blueLeader.randomUpdate(units, deltaTime);
-
-        units.removeIf(unit -> !unit.isAlive());
+    private List<Unit> cloneUnits(){
+        List<Unit> units = new ArrayList<>();
+        units.forEach(unit -> {
+            units.add(unit.clone());
+        });
+        return units;
     }
 
     // RENDER
@@ -176,27 +205,30 @@ public class StartController {
         gc.fillRect(0, 0, mainCanvas.getWidth(), mainCanvas.getHeight());
 
         // 2. Рисування юнітів
-        for (Unit unit : units) {
-            if (unit.isAlive()) {
-                // Лідер клану виділяється жовтим
-                if (unit == blueLeader.getLeader() || unit == redLeader.getLeader()) {
-                    Renderable customRender = new CustomRenderForUnit(unit);
-                    customRender.render(gc);
-                } else {
-                    unit.render(gc); // Звичайне відтворення
-                }
-            }
-        }
+//        for (Unit unit : units) {
+//            if (unit.isAlive()) {
+//                // Лідер клану виділяється жовтим
+//                if (unit == blueLeader.getLeader() || unit == redLeader.getLeader()) {
+//                    Renderable customRender = new CustomRenderForUnit(unit);
+//                    customRender.render(gc);
+//                } else {
+//                    unit.render(gc); // Звичайне відтворення
+//                }
+//            }
+//        }
+
+        redLeader.render(gc);
+        blueLeader.render(gc);
 
         // 3. Виведення статистики
-        gc.setFill(FRIEND_COLOR);
-        gc.fillText(String.format("Кількість BLUE: %s", units.stream().filter(
-                unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR)).count()), 10, 15);
-
-        gc.fillText(String.format("Лідер: %s", blueLeader.getLeader().getName()), 10, 45);
-
-        gc.setFill(ENEMY_COLOR);
-        gc.fillText(String.format("Кількість RED: %s", units.stream().filter(
-                unit -> unit.isAlive() && unit.getColor().equals(Color.RED)).count()), 10, 30);
+//        gc.setFill(FRIEND_COLOR);
+//        gc.fillText(String.format("Кількість BLUE: %s", units.stream().filter(
+//                unit -> unit.isAlive() && unit.getColor().equals(FRIEND_COLOR)).count()), 10, 15);
+//
+//        gc.fillText(String.format("Лідер: %s", blueLeader.getLeader().getName()), 10, 45);
+//
+//        gc.setFill(ENEMY_COLOR);
+//        gc.fillText(String.format("Кількість RED: %s", units.stream().filter(
+//                unit -> unit.isAlive() && unit.getColor().equals(Color.RED)).count()), 10, 30);
     }
 }

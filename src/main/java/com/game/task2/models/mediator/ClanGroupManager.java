@@ -6,6 +6,7 @@ import com.game.task2.models.command.FindNearestEnemyCommand;
 import com.game.task2.models.command.MoveCommand;
 import com.game.task2.models.factory.unit.ClanUnit;
 import com.game.task2.models.factory.unit.Unit;
+import com.game.task2.models.memento.Savable;
 import com.game.task2.models.other.Vector2D;
 import javafx.scene.paint.Color;
 
@@ -14,15 +15,19 @@ import java.util.List;
 
 public class ClanGroupManager implements GroupManager {
     private final double SPEED = 25.0;
-    private List<Unit> units;
+    private List<Unit> units = new ArrayList<>();
 
     public ClanGroupManager() {
-        units = new ArrayList<>();
     }
 
     public ClanGroupManager(List<Unit> units) {
-        this();
         this.units = units;
+    }
+
+    public ClanGroupManager(GroupManager manager) {
+        for (var item : manager.getUnits()){
+            units.add(item.clone());
+        }
     }
 
     @Override
